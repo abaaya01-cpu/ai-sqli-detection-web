@@ -45,7 +45,7 @@ package excludes local databases, accounts, secrets, datasets and experiment rec
 
 Free Render services do not provide an interactive shell. The deployment worker
 initializes its database and sole administrator on startup. Gunicorn 26.2.0 uses
-one worker and two threads; TensorFlow CPU thread pools are limited to one each.
+one synchronous worker and one request thread; TensorFlow CPU thread pools are limited to one each.
 Secure session cookies and a stable random session key are required. Automatic
 deployment is disabled. The health check is /login; model startup and database
 initialization must finish before the page is served.
