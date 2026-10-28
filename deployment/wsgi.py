@@ -4,6 +4,7 @@ Gunicorn imports this inside its single worker, after forking. No weights,
 thresholds, preprocessing, routes, or existing application files are changed.
 """
 import os
+import faulthandler
 from pathlib import Path
 
 
@@ -29,6 +30,7 @@ def validate_environment():
 root = validate_environment()
 
 from app import app
+from flask import request
 from database import init_db, query, create_single_admin
 from werkzeug.security import generate_password_hash
 
@@ -55,3 +57,18 @@ with app.app_context():
         create_single_admin(email, generate_password_hash(password))
 
 app.logger.info('Hosted startup complete: hybrid artifact loaded; database initialized.')
+
+
+@app.before_request
+def diagnose_hosted_submission():
+    if request.method == 'POST':
+        app.logger.warning('Hosted form started: %s', request.path)
+        faulthandler.dump_traceback_later(15, repeat=False)
+
+
+@app.after_request
+def finish_hosted_submission(response):
+    if request.method == 'POST':
+        faulthandler.cancel_dump_traceback_later()
+        app.logger.warning('Hosted form completed: %s status=%s', request.path, response.status_code)
+    return response
