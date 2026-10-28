@@ -11,3 +11,10 @@ preload_app = False
 accesslog = None
 errorlog = '-'
 capture_output = True
+
+
+def post_worker_init(worker):
+    # Gunicorn can import the WSGI module for validation in its parent process.
+    # Initialize TensorFlow only after the serving worker has been forked.
+    from deployment.wsgi import initialize_worker
+    initialize_worker()

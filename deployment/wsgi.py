@@ -4,7 +4,6 @@ Gunicorn imports this inside its single worker, after forking. No weights,
 thresholds, preprocessing, routes, or existing application files are changed.
 """
 import os
-import faulthandler
 from pathlib import Path
 
 
@@ -39,36 +38,33 @@ if os.environ.get('RENDER') == 'true':
     if Path(app.instance_path) != expected:
         raise RuntimeError('The database path does not match the Render application directory.')
 
-active = app.extensions['sqli_detector']
-active.load()
-if active.mode != 'hybrid' or active.runtime is None or active.error:
-    raise RuntimeError('The configured hybrid model failed its startup compatibility check.')
+_initialized_pid = None
 
-with app.app_context():
-    init_db()
-    # Free services have no shell and lose local data on cold starts. Provision
-    # only the reserved administrator from private hosting environment values.
-    # Existing administrator credentials are never reset here.
-    if not query('SELECT user_id FROM admin_access WHERE slot=1', fetch=True):
-        email = os.environ.get('ADMIN_EMAIL', '').strip().casefold()
-        password = os.environ.get('ADMIN_PASSWORD', '')
-        if '@' not in email or len(password) < 24:
-            raise RuntimeError('Provide ADMIN_EMAIL and a private ADMIN_PASSWORD of at least 24 characters.')
-        create_single_admin(email, generate_password_hash(password))
 
-app.logger.info('Hosted startup complete: hybrid artifact loaded; database initialized.')
+def initialize_worker():
+    """Create TensorFlow's thread pools only inside the serving worker."""
+    global _initialized_pid
+    if _initialized_pid == os.getpid():
+        return
+    active = app.extensions['sqli_detector']
+    active.load()
+    if active.mode != 'hybrid' or active.runtime is None or active.error:
+        raise RuntimeError('The configured hybrid model failed its startup compatibility check.')
+    with app.app_context():
+        init_db()
+        # Free services have no shell and lose local data on cold starts.
+        # Existing administrator credentials are never reset here.
+        if not query('SELECT user_id FROM admin_access WHERE slot=1', fetch=True):
+            email = os.environ.get('ADMIN_EMAIL', '').strip().casefold()
+            password = os.environ.get('ADMIN_PASSWORD', '')
+            if '@' not in email or len(password) < 24:
+                raise RuntimeError('Provide ADMIN_EMAIL and a private ADMIN_PASSWORD of at least 24 characters.')
+            create_single_admin(email, generate_password_hash(password))
+    _initialized_pid = os.getpid()
+    app.logger.warning('Hosted worker ready: pid=%s hybrid model loaded; database initialized.', _initialized_pid)
 
 
 @app.before_request
-def diagnose_hosted_submission():
-    if request.method == 'POST':
-        app.logger.warning('Hosted form started: %s', request.path)
-        faulthandler.dump_traceback_later(15, repeat=False)
-
-
-@app.after_request
-def finish_hosted_submission(response):
-    if request.method == 'POST':
-        faulthandler.cancel_dump_traceback_later()
-        app.logger.warning('Hosted form completed: %s status=%s', request.path, response.status_code)
-    return response
+def require_initialized_worker():
+    if _initialized_pid != os.getpid():
+        raise RuntimeError('The hosting worker initialization hook has not run.')
