@@ -1,0 +1,10 @@
+{% extends 'soc/layout.html' %}{% from 'soc/components.html' import icon, event_table, activity_chart, donut %}
+{% block soc_title %}Admin Dashboard{% endblock %}
+{% block description %}A focused view of application screening activity and recent decisions.{% endblock %}
+{% block soc_content %}
+<div class="section-meta"><span>Reporting window: latest 10,000 analyzed form submissions</span><span class="quiet-label">All timestamps in UTC</span></div>
+<section class="metric-grid" aria-label="Security totals">{% for label,value,kind in [('Analyzed',soc.total,'neutral'),('Blocked',soc.blocked,'red'),('Allowed',soc.allowed,'mint'),('Review',soc.review,'amber'),('Suspicious',soc.attacks,'blue')] %}<article class="metric-card metric-{{ kind }}"><div class="metric-head"><span class="metric-accent"></span><span class="metric-context">{{ 'Requires inspection' if label=='Suspicious' else 'Recorded events' }}</span></div><strong>{{ label }}</strong><p>{{ value }}</p><span class="metric-foot">{{ 'Block + Review decisions' if label=='Suspicious' else 'In this reporting window' }}</span></article>{% endfor %}</section>
+<section class="overview-charts"><article class="panel"><div class="panel-heading"><div><p class="eyebrow">ACTIVITY</p><h2>Security Operations Center (SOC) Analysis</h2></div><span class="subtle-chip">Daily events</span></div>{{ activity_chart(activity,'overview-activity') }}</article><article class="panel"><div class="panel-heading"><div><p class="eyebrow">DECISIONS</p><h2>Screening outcomes</h2></div></div>{{ donut(decisions,'overview-decisions') }}</article></section>
+<section class="panel"><div class="panel-heading"><div><h2>Recent screening details</h2><p>The six most recent recorded events.</p></div><a class="text-link" href="{{ url_for('soc_pages.events_page') }}">View all events {{ icon('arrow') }}</a></div>{{ event_table(events,true) }}</section>
+<div class="overview-footnote"><span>Active detection mode: <strong>{{ detection_status.mode }}</strong> · {{ detection_status.artifact }}</span><a class="text-link" href="{{ url_for('soc_pages.ai_page') }}">Understand detection {{ icon('arrow') }}</a></div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% macro icon(name) -%}
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == 'shield' %}<path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6z"/><path d="m8.5 12 2.3 2.3 4.7-4.8"/>
+{% elif name == 'overview' %}<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+{% elif name == 'events' %}<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>
+{% elif name == 'ai' %}<rect x="6" y="6" width="12" height="12" rx="3"/><path d="M9 2v4m6-4v4m-6 12v4m6-4v4M2 9h4m-4 6h4m12-6h4m-4 6h4"/><path d="m9 13 2-4 2 6 2-4"/>
+{% elif name == 'analysis' %}<path d="M4 3v17h17M8 16v-4m5 4V8m5 8V5"/>
+{% elif name == 'details' %}<path d="M14 3H5v18h14V8zM14 3v5h5M8 12h8m-8 4h5"/>
+{% elif name == 'system' %}<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4M7 9h4m-4 3h8"/>
+{% elif name == 'search' %}<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>
+{% elif name == 'arrow' %}<path d="M5 12h14m-5-5 5 5-5 5"/>
+{% elif name == 'refresh' %}<path d="M20 11a8 8 0 1 0-2 6M20 4v7h-7"/>
+{% elif name == 'menu' %}<path d="M4 6h16M4 12h16M4 18h16"/>
+{% elif name == 'exit' %}<path d="M9 3H4v18h5m5-14 5 5-5 5m-6-5h11"/>
+{% else %}<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>{% endif %}
+</svg>
+{%- endmacro %}
+
+{% macro badge(decision) -%}<span class="badge decision-{{ decision|lower }}"><i aria-hidden="true"></i>{{ decision|capitalize }}</span>{%- endmacro %}
+{% macro value(number) -%}{{ '%.4f'|format(number) if number is not none else 'Not recorded' }}{%- endmacro %}
+
+{% macro event_table(events, compact=false) %}
+<div class="table-scroll"><table class="data-table"><caption class="sr-only">Recorded security events, newest first</caption><thead><tr><th scope="col">Event / UTC time</th><th scope="col">Endpoint</th><th scope="col">Decision</th>{% if not compact %}<th scope="col">Severity</th>{% endif %}<th scope="col">Detection source</th><th scope="col"><span class="sr-only">Inspect event</span></th></tr></thead><tbody>
+{% for event in events %}<tr>
+<td><a class="event-id" href="{{ url_for('soc_pages.event_details',event_id=event.id) }}">#{{ event.id }}</a><span class="table-sub">{{ event.timestamp or 'Time not recorded' }}</span></td>
+<td><code>{{ event.endpoint }}</code></td><td>{{ badge(event.decision) }}</td>
+{% if not compact %}<td><span class="severity severity-{{ event.risk }}">{{ event.risk|capitalize }}</span></td>{% endif %}
+<td><span class="source-label">{{ event.source_label }}</span><span class="table-sub">{{ event.mode_label }}</span></td>
+<td><a class="inspect-link" href="{{ url_for('soc_pages.event_details',event_id=event.id) }}" aria-label="Inspect event {{ event.id }}">{{ icon('arrow') }}</a></td>
+</tr>{% else %}<tr><td colspan="{{ 6 if not compact else 5 }}"><div class="empty-state">{{ icon('events') }}<strong>No events to display</strong><p>Recorded submissions will appear here. Try clearing any active filters.</p></div></td></tr>{% endfor %}
+</tbody></table></div>
+{% endmacro %}
+
+{% macro activity_chart(data, chart_id) %}
+{% if data.points %}<div class="activity-plot"><svg viewBox="0 0 720 225" role="img" aria-labelledby="{{ chart_id }}-title {{ chart_id }}-desc"><title id="{{ chart_id }}-title">Recorded security events by UTC day</title><desc id="{{ chart_id }}-desc">{% for point in data.points %}{{ point.day }}: {{ point.count }} events. {% endfor %}</desc>
+<defs><linearGradient id="{{ chart_id }}-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#55d6aa" stop-opacity=".18"/><stop offset="100%" stop-color="#55d6aa" stop-opacity="0"/></linearGradient></defs>
+{% for y in [44,109,174] %}<line x1="42" y1="{{ y }}" x2="690" y2="{{ y }}" class="grid-line"/>{% endfor %}
+<text x="8" y="48" class="axis-text">{{ data.ceiling }}</text><text x="18" y="178" class="axis-text">0</text>
+{% if data.points|length > 1 %}<polygon points="{{ data.points[0].x }},174 {{ data.polyline }} {{ data.points[-1].x }},174" fill="url(#{{ chart_id }}-fill)"/>
+<polyline points="{{ data.polyline }}" class="activity-line"/>{% endif %}
+{% for point in data.points %}<circle cx="{{ point.x }}" cy="{{ point.y }}" r="4" class="chart-dot"/><text x="{{ point.x }}" y="{{ point.y-13 }}" text-anchor="middle" class="value-text">{{ point.count }}</text>{% if data.points|length <= 7 or loop.first or loop.last or loop.index % 3 == 0 %}<text x="{{ point.x }}" y="205" text-anchor="middle" class="axis-text">{{ point.label }}</text>{% endif %}{% endfor %}</svg></div>
+<p class="chart-note">Latest {{ data.points|length }} days with recorded activity, UTC.{% if data.unknown %} {{ data.unknown }} events have no usable timestamp.{% endif %}</p>
+{% else %}<div class="empty-state">{{ icon('analysis') }}<strong>No dated activity yet</strong><p>The chart uses event timestamps, without sample data.</p></div>{% endif %}
+{% endmacro %}
+
+{% macro donut(data, chart_id) %}
+<div class="decision-layout"><div class="donut-wrap"><svg class="donut" viewBox="0 0 42 42" role="img" aria-labelledby="{{ chart_id }}-title"><title id="{{ chart_id }}-title">{% for s in data.segments %}{{ s.label }}: {{ s.count }}. {% endfor %}</title><circle cx="21" cy="21" r="15.9155" fill="none" stroke="#243345" stroke-width="4"/>
+{% for s in data.segments if s.count %}<circle cx="21" cy="21" r="15.9155" fill="none" stroke="{{ s.color }}" stroke-width="4" stroke-dasharray="{{ s.dash }} {{ 100-s.dash }}" stroke-dashoffset="{{ s.offset }}" transform="rotate(-90 21 21)"/>{% endfor %}</svg><div class="donut-center"><strong>{{ data.total }}</strong><span>events</span></div></div>
+<ul class="chart-legend">{% for s in data.segments %}<li><span class="legend-name"><i style="background:{{ s.color }}" aria-hidden="true"></i>{{ s.label }}</span><strong>{{ s.count }}</strong><span>{{ s.percent }}%</span></li>{% endfor %}</ul></div>
+{% if not data.total %}<p class="chart-note">No recorded decisions in this reporting window.</p>{% endif %}
+{% endmacro %}
+
+{% macro bars(items, color='mint') %}<div class="bar-list">{% for item in items[:8] %}<div class="bar-item"><div class="bar-label"><span>{{ item.label }}</span><strong>{{ item.count }} <small>{{ item.share }}%</small></strong></div><div class="bar-track"><div class="bar-fill {{ color }}" style="width:{{ item.percent }}%"></div></div></div>{% else %}<div class="empty-state"><strong>No matching records</strong><p>Groups will appear when supporting events are recorded.</p></div>{% endfor %}</div>{% if items|length > 8 %}<p class="chart-note">Top 8 of {{ items|length }} recorded groups.</p>{% endif %}{% endmacro %}

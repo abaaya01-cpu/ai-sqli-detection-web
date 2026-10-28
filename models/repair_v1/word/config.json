@@ -1,0 +1,20 @@
+{
+  "artifact_id": "repair_v1_word",
+  "preprocessing": "normalize_v1",
+  "maxlen": 64,
+  "padding": "post",
+  "truncating": "post",
+  "policy": {
+    "rules_block": 0.65,
+    "lstm_block": 0.88,
+    "hybrid_block": 0.89,
+    "review": 0.45,
+    "selection": "Validation only: prefer FPR <=0.05, then max F1, lower FPR, higher threshold; REVIEW allows"
+  },
+  "schema_version": 1,
+  "model_file": "model.keras",
+  "sha256": {
+    "model.keras": "dd20ae4f3d805b70e12337bf447249747550fe3754e3d7ee27fba1521410bc21",
+    "tokenizer.json": "3c75257afb8aa162728ded1f624d86708251e60e0e6e5ea3dc22afe20febe237"
+  }
+}

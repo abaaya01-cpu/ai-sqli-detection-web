@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Manage Your System Security{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+    <div class="container">
+        <p class="section-kicker">User Dashboard</p>
+        <h1>Welcome, {{ session.get("full_name") }}.</h1>
+        <p>Your account is active. Review your security status and keep your access protected.</p>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <span class="metric-label">Session Status</span>
+                    <strong>Logged In</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <span class="metric-label">Account Email</span>
+                    <strong>{{ session.get("email") }}</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <span class="metric-label">Access Level</span>
+                    <strong>Standard User</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-panel mt-4">
+            <h2>Security Checklist</h2>
+            <div class="row g-3 mt-2">
+                <div class="col-md-6">
+                    <div class="check-item">Use a strong and private password</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="check-item">Sign out after using a shared device</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="check-item">Keep your account email up to date</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="check-item">Contact support for suspicious activity</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,33 @@
+# Free demonstration: local database records reset when Render restarts it.
+services:
+  - type: web
+    name: sqli-detection
+    runtime: python
+    plan: free
+    region: singapore
+    numInstances: 1
+    autoDeployTrigger: "off"
+    buildCommand: pip install -r requirements-deploy.txt
+    startCommand: gunicorn --config deployment/gunicorn.conf.py deployment.wsgi:app
+    healthCheckPath: /login
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DB_BACKEND
+        value: sqlite
+      - key: SQLI_MODEL_DIR
+        value: models/repair_v1/word
+      - key: SQLI_MODE
+        value: hybrid
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: ADMIN_EMAIL
+        value: admin@sqli.local
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: TF_NUM_INTRAOP_THREADS
+        value: "1"
+      - key: TF_NUM_INTEROP_THREADS
+        value: "1"
+      - key: OMP_NUM_THREADS
+        value: "1"

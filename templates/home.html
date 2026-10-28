@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Manage Your System Security{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <p class="section-kicker">System Security Portal</p>
+                <h1 class="display-5 fw-bold">Manage Your System Security</h1>
+                <p class="lead mt-3">
+                    Protect user access, review account status, and manage essential
+                    security settings from one simple and reliable portal.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    <a href="{{ url_for('register') }}" class="btn btn-accent btn-lg">Create Account</a>
+                    <a href="{{ url_for('about') }}" class="btn btn-outline-light btn-lg">Learn More</a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="status-panel">
+                    <div class="status-row">
+                        <span>Account Access</span>
+                        <strong>Active</strong>
+                    </div>
+                    <div class="status-row">
+                        <span>Password Protection</span>
+                        <strong>Enabled</strong>
+                    </div>
+                    <div class="status-row">
+                        <span>Security Review</span>
+                        <strong>Available</strong>
+                    </div>
+                    <div class="status-row">
+                        <span>Support Status</span>
+                        <strong>Online</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h2>Secure Access</h2>
+                    <p>Create an account and sign in through a clean, protected authentication flow.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h2>Protected Accounts</h2>
+                    <p>Your account details are handled carefully and protected from unauthorized access.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h2>Security Dashboard</h2>
+                    <p>View important account information and follow simple steps to keep your access secure.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
