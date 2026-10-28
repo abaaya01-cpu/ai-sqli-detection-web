@@ -1,4 +1,4 @@
-"""Explicit, validated artifact contract. No pickle is loaded by the website."""
+
 import hashlib
 import json
 import math
