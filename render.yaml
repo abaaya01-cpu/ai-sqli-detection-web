@@ -22,7 +22,7 @@ services:
       - key: SESSION_COOKIE_SECURE
         value: "true"
       - key: ADMIN_EMAIL
-        value: admin@sqli.local
+        value: admin@gmail.com
       - key: ADMIN_PASSWORD
         generateValue: true
       - key: TF_NUM_INTRAOP_THREADS

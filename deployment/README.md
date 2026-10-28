@@ -36,7 +36,7 @@ package excludes local databases, accounts, secrets, datasets and experiment rec
    gunicorn --config deployment/gunicorn.conf.py deployment.wsgi:app
 
 4. Render generates private SECRET_KEY and ADMIN_PASSWORD values. Keep both
-   stable. The login email is admin@sqli.local. Read the generated password in
+   stable. The login email is admin@gmail.com. Read the generated password in
    the service environment settings; never commit it or place it in build
    commands or URLs. The local project's old password is not copied.
 5. Open the issued HTTPS URL and check public pages, registration, login,

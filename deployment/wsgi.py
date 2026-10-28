@@ -1,7 +1,7 @@
 """Initialize a free demo and require the configured hybrid artifact to load.
 
-Gunicorn imports this inside its single worker, after forking. No weights,
-thresholds, preprocessing, routes, or existing application files are changed.
+Gunicorn may import this module in its parent process. The worker startup hook
+initializes TensorFlow after the fork. Detection artifacts and policy are unchanged.
 """
 import os
 from pathlib import Path
@@ -57,8 +57,8 @@ def initialize_worker():
         if not query('SELECT user_id FROM admin_access WHERE slot=1', fetch=True):
             email = os.environ.get('ADMIN_EMAIL', '').strip().casefold()
             password = os.environ.get('ADMIN_PASSWORD', '')
-            if '@' not in email or len(password) < 24:
-                raise RuntimeError('Provide ADMIN_EMAIL and a private ADMIN_PASSWORD of at least 24 characters.')
+            if '@' not in email or len(password) < 8:
+                raise RuntimeError('Provide ADMIN_EMAIL and an ADMIN_PASSWORD of at least 8 characters.')
             create_single_admin(email, generate_password_hash(password))
     _initialized_pid = os.getpid()
     app.logger.warning('Hosted worker ready: pid=%s hybrid model loaded; database initialized.', _initialized_pid)
